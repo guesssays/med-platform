@@ -1,0 +1,25 @@
+﻿name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build & up
+        run: docker compose up -d --build
+      - name: Wait for API
+        run: |
+          for i in {1..30}; do
+            curl -fsS http://localhost:8000/api/v1/health && exit 0
+            sleep 2
+          done
+          exit 1
+      - name: Alembic upgrade
+        run: docker compose exec -T api alembic upgrade head
+      - name: Smoke users
+        run: |
+          curl -fsS http://localhost:8000/openapi.json | jq '.info.title' || true
