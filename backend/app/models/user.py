@@ -1,7 +1,14 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Enum
 from sqlalchemy.orm import relationship
+import enum
 
 from app.db.base_class import Base
+
+
+class UserRole(str, enum.Enum):
+    ADMIN = "admin"
+    DOCTOR = "doctor"
+    PATIENT = "patient"
 
 
 class User(Base):
@@ -9,10 +16,10 @@ class User(Base):
 
     id: int = Column(Integer, primary_key=True, index=True)
     email: str = Column(String, unique=True, index=True, nullable=False)
-    # хранится хэш, НЕ пароль в открытом виде
     password_hash: str = Column(String, nullable=False)
 
-    # one-to-one к DoctorProfile
+    role: str = Column(Enum(UserRole), nullable=False, default=UserRole.PATIENT)
+
     doctor_profile = relationship(
         "DoctorProfile",
         back_populates="user",
@@ -21,4 +28,4 @@ class User(Base):
     )
 
     def __repr__(self) -> str:
-        return f"<User id={self.id} email={self.email!r}>"
+        return f"<User id={self.id} email={self.email!r} role={self.role}>"
