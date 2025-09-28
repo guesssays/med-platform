@@ -16,6 +16,10 @@ class Settings(BaseSettings):
 
     JWT_SECRET: str
     JWT_ALG: str = "HS256"
-    JWT_EXPIRES_MIN: int = 60
+    JWT_EXPIRES_MIN: int = 60  # access TTL (мин)
+
+    # Новые настройки
+    REFRESH_EXPIRES_DAYS: int = 30
+    RESET_TOKEN_EXPIRES_MIN: int = 30
 
 settings = Settings()  # type: ignore

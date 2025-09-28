@@ -1,3 +1,4 @@
+# backend/app/models/user.py
 from sqlalchemy import Column, Integer, String, Enum
 from sqlalchemy.orm import relationship
 import enum
@@ -18,13 +19,40 @@ class User(Base):
     email: str = Column(String, unique=True, index=True, nullable=False)
     password_hash: str = Column(String, nullable=False)
 
-    role: str = Column(Enum(UserRole), nullable=False, default=UserRole.PATIENT)
+    # enum хранится как строковое значение (admin/doctor/patient)
+    role: str = Column(
+        Enum(
+            UserRole,
+            values_callable=lambda enum_cls: [e.value for e in enum_cls],
+            name="userrole",
+            native_enum=True,
+            validate_strings=True,
+        ),
+        nullable=False,
+        server_default=UserRole.PATIENT.value,
+    )
 
+    # Профиль врача (если есть)
     doctor_profile = relationship(
         "DoctorProfile",
         back_populates="user",
         uselist=False,
         cascade="all, delete-orphan",
+    )
+
+    # НОВОЕ: связи для токенов — строго через back_populates
+    refresh_tokens = relationship(
+        "RefreshToken",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+
+    password_reset_tokens = relationship(
+        "PasswordResetToken",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )
 
     def __repr__(self) -> str:
